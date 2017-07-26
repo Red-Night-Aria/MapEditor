@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<script src="js/jquery-3.2.1.min.js"></script>
+		<script src="js/pixi.min.js"></script>
+		<script src="js/FileSaver.min.js"></script>
+		
+		<script src="js/jQuery-Mousewheel-3.1.13-min.js"></script>
+    <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>MapEditor</title>
+</head>
+<style type="text/css">
+	span{
+		margin:12px;
+		color: #cc9b6a;
+	}
+	img{
+		width: 200px;
+		height: 50px;
+		margin-top:-10px;
+	}
+	.border{
+		height: 250px;
+		overflow-y:auto;
+	}
+	::-webkit-scrollbar  
+	{  
+    width: 10px;  
+	} 
+	::-webkit-scrollbar-thumb  
+	{  
+    border-radius: 10px;  
+    /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);  */
+    background-color: #F0deb9;  
+	} 
+
+  .myInput{
+    height: 29px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  
+  .myFormDiv{
+    padding-left: 30px;
+    padding-right: 2px;
+  }
+  .mylabel{
+        padding-left: 6px;
+        padding-right: 0px;
+        text-align: left!important;
+  }
+
+</style>
+<body class="container">   
+    <br>
+    <div style="float:right;">
+        <ul class="nav nav-pills">
+        <li role="presentation"><a href="#">新建</a></li>
+        <li role="presentation"><a href="#">Import</a></li>
+        <li role="presentation"><a href="#">Export</a></li>
+			  <li role="presentation"><a href="#">扩展</a></li>
+        </ul>
+    </div>
+    <div>
+    	<img src="logowo.png">
+    </div>
+    <br>
+    <br>
+    <div class="row">
+  		<div class="col-md-2 col-lg-2">
+ <!--  			<div class="border">
+  				<h2>Default</h2>
+  				<span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>
+  			    </div>	-->
+
+			<div class="panel panel-default" >
+			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
+			    <h2 class="panel-title" style="font-size: 20px">Default</h2>
+			  </div>
+			  <div class="panel-body">
+			    <span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>
+  				<span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>
+  				<span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>
+  				<span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>
+  				<span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>	
+  				<span class="glyphicon glyphicon-plus"></span>
+  				<span class="glyphicon glyphicon-tags"></span>
+  				<span class="glyphicon glyphicon-menu-hamburger"></span>
+			  </div>
+			</div>
+            <div>
+  				<hr>
+  			</div>
+			<div class="panel panel-default " >
+			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
+			    <h2 class="panel-title" style="font-size: 20px">Custom</h2>
+			  </div>
+			  <div class="panel-body">
+			    <span class="glyphicon glyphicon-plus"></span>
+			  </div>
+			</div>
+
+  		</div>
+
+  		<div class="col-md-8 col-lg-8" id="mainBody">
+				<!-- <button onclick="foo()">Click me</button> -->
+  		</div>
+
+  		<div class="col-md-2 col-lg-2" >
+  			<div class="panel panel-default" >
+			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
+			    <h2 class="panel-title" style="font-size: 20px">属性</h2>
+			  </div>
+			  <div class="panel-body">
+          <form class="form-horizontal" role="form" id="attrPanel">
+            <div class="form-group">
+              <label class="mylabel col-md-3 col-sm-3 control-label">type</label>
+              <div class="myFormDiv col-md-9 col-sm-9">
+                <p class="form-control-static" id="pointType">lg;hsargaehfefh</p>
+              </div>
+            </div>
+          </form>
+			  </div>
+			</div>
+  		</div>
+	</div>
+</body>
+<script src="js/mapEditor.js"></script>
+<script src="js/display.js"></script>
+<script src="js/Stringformat.js"></script>
+<script>
+	main();
+	// function foo(){
+	// 	var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
+	// 	saveAs(blob, "hello world.src");
+	// }
+</script>
+</html>

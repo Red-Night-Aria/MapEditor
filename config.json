@@ -1,0 +1,54 @@
+{
+    "NameMap": {
+        "2": {
+            "name": "工作站等待点",
+            "picture": "station_waiting.png",
+            "attr": ["cost", "stationID", "relativeID"]
+        },
+        "3": {
+            "name": "工作站检货点",
+            "picture": "online.png",
+            "attr": ["cost", "stationID", "pickupPos", "relativeID", "offset"]
+        },
+        "4": {
+            "name": "工作站换向点",
+            "picture": "station_turning.png",
+            "attr": ["cost", "stationID", "relativeID"]
+        },
+        "5": {
+            "name": "货架存储点",
+            "picture": "storage.png",
+            "attr": ["cost"]
+        },
+        "6": {
+            "name": "路径点",
+            "picture": "path.png",
+            "attr": ["cost", "lane"]
+        },
+        "7": {
+            "name": "充电站",
+            "picture": "charger_station.png",
+            "attr": ["cost"]
+        },
+        "8": {
+            "name": "？？？",
+            "picture": "bucket_detachable_working_online.png",
+            "attr": ["cost"]
+        },
+        "9": {
+            "name": "不可通行点",
+            "picture": "charger_pole.png",
+            "attr": ["cost"]
+        },
+        "10": {
+            "name": "货架进场点",
+            "picture":  "bucket_entrance.png",
+            "attr": ["cost"]
+        }
+    },
+    "importSep": [",", "|", ";"],
+    "exportSep": [",", "|", ";"],
+    "select": "select.png",
+    "listSelect": "list_select.png",
+    "texturesFile": "images/blue_gray_114.json"
+}
