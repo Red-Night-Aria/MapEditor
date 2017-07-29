@@ -1,32 +1,58 @@
-var divWidth, divHeight; 
-
-//Aliases
+/*
+    pixiJS Aliases
+*/
 var Container = PIXI.Container,
     autoDetectRenderer = PIXI.autoDetectRenderer,
     loader = PIXI.loader,
     resources = PIXI.loader.resources,
     TextureCache = PIXI.utils.TextureCache,
     Texture = PIXI.Texture,
-    Sprite = PIXI.Sprite;
+    Sprite = PIXI.Sprite,
+    stage,
+    renderer;
 
-//pixiJS场景对象
-var stage, renderer;
+/*
+    pixiJS图层
+*/
+var Grids,  //地图点层
+    Masks;  //选中框层
 
-//名称映射
-var NameMap;
+var NameMap;    //名称映射表
 
-//地图数组
-var QT_Map, R, C;
+/*
+    地图数据相关
+*/
+var QT_Map, //地图数据数组 
+    R, C,   //地图长宽
+    len,    //方格边长 
+    maxR=200, maxC=200, //地图最大长宽
+    theme = "blue_gray_114",    //地图主题
+    selectIm, listSelectIm, //选择框图片
+    texturesFile;   //材质文件
 
-//Sprite集合
-var Grids;
+/*
+    初始化二维数组= =
+*/
+Grids = new Array(maxR);
+for (var i=0; i<maxR; i++) Grids[i] = new Array(maxC);
+QT_Map = new Array(maxR);
+for (var i=0; i<maxR; i++) QT_Map[i] = new Array(maxC);
+Masks = new Array(maxR);
+for (var i=0; i<maxR; i++) Masks[i] = new Array(maxC);   
 
-//分隔符
+/*
+    文件分隔符
+*/
 var importSep, exportSep;
 
+/*
+    多选功能键
+*/
 var funcKey = 81; //Q键
 
-//状态表
+/*
+    地图状态表
+*/
 var stateTable={
     "state": 0,
     "TLC": {"x": -1, "y": -1},    //左上角Top-Left-Corner :)
@@ -37,23 +63,36 @@ var stateTable={
     "hasMulitSelected": false 
 }
 
-var Masks;  //选中框数组
+/*
+    其他文件中会用到的全局变量
+*/
+var MapEditor = {
+    "mode": "-1",
+    "mapData": ""
+}
 
-var texturesFile;   //材质文件
-
-var selectIm, listSelectIm; //选择框图片
+/*
+    地图点类
+*/
+function MapPoint(type){
+    var pointType = NameMap[type];
+    this.type = type;
+    this.typeName = pointType["name"];
+    this.picture = pointType["picture"];
+    var attrSet = pointType["attr"];    //读取属性集
+    for (var i=0; i<attrSet.length; i++) this[attrSet[i]] = ""; //动态添加属性 
+}
 
 function main(){
-    divWidth = $("#mainBody").width();
-    divHeight = $(document).height();
+    var divWidth = $("#mainBody").width();  //获取画布容器的宽度
+    var divHeight = $(document).height();
     stage = new Container();
     renderer = autoDetectRenderer(divHeight, divWidth);
     $("#mainBody").append(renderer.view);
-    loadConfig();
-}
-
-//加载配置文件
-function loadConfig(){
+    
+    /*
+        加载配置文件
+    */
     $.getJSON("config.json", function(data){
         NameMap = data["NameMap"];
         importSep = data["importSep"];
@@ -62,20 +101,24 @@ function loadConfig(){
         listSelectIm = data["listSelect"];
         texturesFile = data["texturesFile"];
 
-        //加载地图
+        /*
+            加载材质文件
+        */
         loader
             .add(texturesFile)
             .load(function(){
                 Pics = resources[texturesFile].textures;        
-                loadMap();   
+                newMap(50, 50);   //新建地图
+                loadItem();   //载入工具框
             });
     });
+
     //监听鼠标滚轮
-    $('div').on('mousewheel', zoom);
+    $('#mainBody').on('mousewheel', zoom);
     //监听鼠标拖拽
-    $('div').mousedown(startDrag);
-    $('div').mousemove(dragStage);
-    $('div').mouseup(endDrag);
+    $('#mainBody').mousedown(startDrag);
+    $('#mainBody').mousemove(dragStage);
+    $('#mainBody').mouseup(endDrag);
     //监听键盘
     $(document).keydown(function(e){
         if (e.which == funcKey){
@@ -99,51 +142,51 @@ function clearStage(){
     stateTable.hasSingleSelected=false; stateTable.hasMulitSelected=false;
 }
 
-//读取地图文件并绘制
-function loadMap(filename="vip_map.csv"){ 
-       
-    $.get("data/"+filename, function(data){
-        var Rows = data.split("\n");
-        R = Rows.length-1;
-        C = Rows[0].split(importSep[0]).length;
-        //console.info(R + " " + C);
-        //console.info(Rows[R-1]);
-        Grids = new Array(R);
-        for (var i=0; i<R; i++) Grids[i] = new Array(C);
-        QT_Map = new Array(R);
-        for (var i=0; i<R; i++) QT_Map[i] = new Array(C);
-        Masks = new Array(R);
-        for (var i=0; i<R; i++) Masks[i] = new Array(C);        
+//载入地图文件
+function loadMap(data){ 
+    var Rows = data.split("\n");
+    R = Rows.length-1;  //地图文件末尾有空行
+    C = Rows[0].split(importSep[0]).length;  
 
-        for (var i=0; i<R; i++){
-            var row = Rows[i];
-            var fields = row.split(importSep[0]);
-            for (var j=0; j<C; j++) QT_Map[i][j] = processData(fields[j]);
-        }
-        //extendMap(2);
-        //console.info(QT_Map);  
-        createSprites();
-        renderer.render(stage);
-    });
+    for (var i=0; i<R; i++){
+        var row = Rows[i];
+        var fields = row.split(importSep[0]);
+        for (var j=0; j<C; j++) QT_Map[i][j] = processData(fields[j]);
+    }
+
+    createMap();
 }
 
-//将地图文件解析至内存
+/*
+    根据地图元数据，绘制画布
+*/
+function createMap(){
+    len = Math.min(renderer.view.height/R, renderer.view.width/C); 
+    clearStage();
+    for (var i=0; i<R; i++){
+        for (var j=0; j<C; j++){
+            createSprite(i, j);
+        }
+    }
+    stage.scale.x = stage.scale.y = 1;  
+    renderer.render(stage);
+}
+/*
+    解析一条地图数据文件字段
+*/
 function processData(str){
     var parts = str.split(importSep[1]);    //分隔属性字段
-    var pointType = NameMap[parts[0]];
-    var point = {}; 
-    point.type = parts[0];
-    point.typeName = pointType["name"]  
-    point.picture = pointType["picture"];
-    var attrSet = pointType["attr"];    //读取属性集
-    //console.log(attrSet.length, " ", parts.length);
-    for (var i=0; i<attrSet.length; i++) point[attrSet[i]] = ""; //动态添加属性
+    var point = new MapPoint(parts[0]);
+    var attrSet = NameMap[parts[0]]["attr"];
     for (var i=1; i<parts.length; i++){
         point[attrSet[i-1]] = parts[i];
     } 
     return point;
 }
 
+/*
+    将地图数据导出为文件
+*/
 function convertMap(){
     var text = "";
     for (var i=0; i<R; i++){
@@ -166,63 +209,73 @@ function convertMap(){
     return text;
 }
 
-//清空Stage, 根据QT_map新建sprites
-function createSprites(){
-    len = Math.min(renderer.view.height/R, renderer.view.width/C); 
-    clearStage();
-
-    for (var i=0; i<R; i++){
-        for (var j=0; j<C; j++){
-            //console.info(QT_Map[i][j].type);
-            //console.info(NameMap[QT_Map[i][j].type]);
-            if (QT_Map[i][j]==undefined){
-                console.log(i, " ", j);
-            }
-            Grids[i][j] = new Sprite(Pics[QT_Map[i][j].picture]);
-            Grids[i][j].y = i*len;  Grids[i][j].x = j*len;
-            Grids[i][j].width = Grids[i][j].height = len;
-            Grids[i][j].index_x = i; Grids[i][j].index_y = j;
-            Grids[i][j].interactive = true;
-            Grids[i][j].on('pointerdown', onSpriteClick);
-            
-            stage.addChild(Grids[i][j]);
-        }
-    }
-    stage.scale.x = stage.scale.y = 1;
+//根据QT_map新建相应坐标点的sprites
+function createSprite(i, j){
+    if (QT_Map[i][j]==undefined) console.log(i, " ", j);
+    Grids[i][j] = new Sprite(Pics[QT_Map[i][j].picture]);
+    Grids[i][j].y = i*len;  Grids[i][j].x = j*len;  //WARN!
+    Grids[i][j].width = Grids[i][j].height = len;
+    Grids[i][j].index_x = i; Grids[i][j].index_y = j;
+    Grids[i][j].interactive = true;
+    Grids[i][j].on('pointerdown', onSpriteClick);  
+    stage.addChild(Grids[i][j]);
 }
 
-var processing = false;
-//处理点击事件
 function onSpriteClick(){
-    while (processing) {}
-    processing = true;
+    /*
+        如果是指示模式
+    */
+    if (MapEditor.mode=="-1"){
+        pointerClick(this);
+    }
+    /*
+        如果是修改模式
+    */
+    else {
+        QT_Map[this.index_x][this.index_y] = new MapPoint(MapEditor.mode);
+        createSprite(this.index_x, this.index_y);
+        renderer.render(stage);
+    }
+}
+
+//清理上一阶段留下的东西
+function clearPreTrace(){
+    if (stateTable.hasSingleSelected){
+        clearMessage();
+        stage.removeChild(Masks[stateTable.lastSelected.x][stateTable.lastSelected.y]);
+    }
+    if (stateTable.hasMulitSelected){
+        rangeRemove();
+    }
+}
+
+//var processing = false;
+//处理点击事件
+function pointerClick(beClick){
+    // while (processing) {}
+    // processing = true;
     switch (stateTable.state){
         case 0: //单选的状态
-            if (stateTable.hasSingleSelected){
-                stage.removeChild(Masks[stateTable.lastSelected.x][stateTable.lastSelected.y]);
-            }
-            if (stateTable.hasMulitSelected){
-                rangeRemove();
-            }
+            clearPreTrace();
             if (stateTable.isFuncKeyPress){
-                createMask(this, listSelectIm);
-                stateTable.TLC.x = this.index_x;  stateTable.TLC.y = this.index_y;
-                stateTable.BRC.x = this.index_x;  stateTable.BRC.y = this.index_y;
+                createMask(beClick, listSelectIm);
+                stateTable.TLC.x = beClick.index_x;  stateTable.TLC.y = beClick.index_y;
+                stateTable.BRC.x = beClick.index_x;  stateTable.BRC.y = beClick.index_y;
                 stateTable.hasMulitSelected = true;    stateTable.hasSingleSelected = false;
                 stateTable.state = 1;
             }
             else {
-                createMask(this, selectIm);
-                stateTable.lastSelected.x = this.index_x; stateTable.lastSelected.y = this.index_y;
+                createMask(beClick, selectIm);
+                stateTable.lastSelected.x = beClick.index_x; stateTable.lastSelected.y = beClick.index_y;
                 stateTable.hasMulitSelected = false;   stateTable.hasSingleSelected = true;
-                console.log(this.index_x, this.index_y);
-                showMessage(QT_Map[this.index_x][this.index_y]);
+                //console.log(beClick.index_x, beClick.index_y);
+                showMessage(QT_Map[beClick.index_x][beClick.index_y]);
             }
             renderer.render(stage);
             break;
         case 1: //多选的状态
             rangeRemove();
-            stateTable.BRC.x = this.index_x;    stateTable.BRC.y = this.index_y;
+            stateTable.BRC.x = beClick.index_x;    stateTable.BRC.y = beClick.index_y;
             rangeCreate();
             renderer.render(stage);
             break;
@@ -240,7 +293,7 @@ function adjustCoord(){
     return coord;
 }
 
-//新建mask, 设置位置及形状, 添加至舞台。未渲染。
+//新建mask, 设置位置及形状, 添加至舞台
 function createMask(beMasked, im){
     var mask = new Sprite(Pics[im]);
     mask.x = beMasked.x;    mask.y = beMasked.y;
@@ -298,37 +351,91 @@ function endDrag(e){
     isDrag = 0;
 }
 
-function emptyPoint(){
-    this.typeName = "不可通行点",
-    this.picture = "charger_pole.png"
-}
+// function emptyPoint(){
+//     this.typeName = "不可通行点",
+//     this.picture = "charger_pole.png"
+// }
+var emptyPoint = "9";
 
 //扩容QT_Map
 function extendMap(margin){
+    clearPreTrace();
+    clearStage();
+
     //为现有行添加首尾元素
     for (var i=0; i<R; i++){
-        for (var j=0; j<margin; j++){
-            QT_Map[i].splice(0, 0, new emptyPoint());
-            QT_Map[i].push(new emptyPoint());
+        for (var j=C-1; j>=0; j--){
+            QT_Map[i][j+margin] = QT_Map[i][j];
         }
+        for (var j=0; j<margin; j++){
+            QT_Map[i][j] = new MapPoint(emptyPoint);
+            QT_Map[i][C+margin+j] = new MapPoint(emptyPoint);
+        }
+    }
+
+    //逐行下移
+    for (var i=R-1; i>=0; i--){
+        QT_Map[i+margin] = QT_Map[i]; 
     }
 
     //添加首尾新行
     for (var i=0; i<margin; i++){
-        QT_Map.splice(0, 0, new Array(C+margin*2));
-        QT_Map.push(new Array(C+margin*2));
+        QT_Map[i] = new Array(maxC);
+        QT_Map[R+margin+i] = new Array(maxC);
         for (var j=0; j<C+margin*2; j++){
-            QT_Map[0][j] = new emptyPoint();
-            QT_Map[QT_Map.length-1][j] = new emptyPoint();
+            QT_Map[i][j] = new MapPoint(emptyPoint);
+            QT_Map[R+margin+i][j] = new MapPoint(emptyPoint);
         }
     }
 
-    for (var i=0; i<margin; i++){
-        Grids.splice(0, 0, new Array());
-        Grids.push(new Array());
-        Masks.splice(0, 0, new Array());
-        Masks.push(new Array());
-    }
     R = R+margin*2; C = C+margin*2;
+    console.log(R, " ", C);
+    console.log(QT_Map);
+    createMap();
 }
 
+function contractMap(margin){
+    clearPreTrace();
+    clearStage();
+}
+
+function dataChange(attr, value){
+    var XY = stateTable.lastSelected;
+    //console.log(attr, value, XY);
+    QT_Map[XY.x][XY.y][attr] = value; 
+}
+
+function modeChange(mode){
+    if (stateTable.hasMulitSelected && mode != "-1"){
+        var coord = adjustCoord();
+        for (var i=coord.TLx; i<=coord.BRx; i++)
+            for (var j=coord.TLy; j<=coord.BRy; j++){
+                QT_Map[i][j] = new MapPoint(mode);
+                createSprite(i, j);
+            }
+        renderer.render(stage);
+    }
+    else {
+        MapEditor.mode = mode;
+        stateTable.hasSingleSelected = false;
+        stateTable.hasMulitSelected = false;
+        stateTable.state = 0;
+    }
+}
+
+//新建一张地图
+function newMap(row, col){
+    //var row = $("#mapsizeInputX").val(), col = $("#mapsizeInputY").val();
+    if (row=="" || col=="") return;
+    clearPreTrace();
+    clearStage();
+    R = row; C = col;
+    len = Math.min(renderer.view.height/R, renderer.view.width/C); 
+    for (var i=0; i<row; i++){
+        for (var j=0; j<col; j++){
+            QT_Map[i][j] = new MapPoint(emptyPoint);
+            createSprite(i, j);
+        }
+    }
+    renderer.render(stage);
+}

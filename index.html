@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
 		<script src="js/jquery-3.2.1.min.js"></script>
+		<script src="js/jQuery-Mousewheel-3.1.13-min.js"></script>
+		<link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
+		<script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+		
 		<script src="js/pixi.min.js"></script>
 		<script src="js/FileSaver.min.js"></script>
-		
-		<script src="js/jQuery-Mousewheel-3.1.13-min.js"></script>
-    <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>MapEditor</title>
+		<title>MapEditor</title>
 </head>
 <style type="text/css">
 	span{
@@ -48,20 +49,99 @@
     padding-right: 2px;
   }
   .mylabel{
-        padding-left: 6px;
-        padding-right: 0px;
-        text-align: left!important;
+		padding-left: 6px;
+		padding-right: 0px;
+		text-align: left!important;
   }
+
+	.myImage{
+		width: 30px;
+		height: 30px;
+		margin: 5px;
+	}
 
 </style>
 <body class="container">   
-    <br>
+		<br>
+		<!-- 导航栏 -->
     <div style="float:right;">
         <ul class="nav nav-pills">
-        <li role="presentation"><a href="#">新建</a></li>
-        <li role="presentation"><a href="#">Import</a></li>
-        <li role="presentation"><a href="#">Export</a></li>
-			  <li role="presentation"><a href="#">扩展</a></li>
+			<li role="presentation"><a data-toggle="modal" href="#newModal">新建</a></li>
+			<!-- 模态框（新建） -->
+			<div class="modal fade" id="newModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+							<div class="modal-content" style="width:500px">
+									<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+											<h4 class="modal-title" id="myModalLabel">新建地图</h4>
+									</div>
+									<div class="modal-body">
+										<div class="row">
+											<p class="form-control-static col-md-4">地图大小</p>
+											<div class="input-group col-md-6">
+												<input type="number" id="mapsizeInputX" class="form-control" value=20 max=200 min=1 aria-describedby="basic-addon1">
+												<span class="input-group-addon" id="basic-addon1">&times;</span>
+												<input type="number" id="mapsizeInputY" class="form-control" value=20 max=200 min=1 aria-describedby="basic-addon1">
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="newButtonClick()">新建</button>
+									</div>
+							</div><!-- /.modal-content -->
+					</div><!-- /.modal -->
+			</div>
+			<li role="presentation"><a data-toggle="modal" href="#importModal">导入</a></li>
+			<!-- 模态框（导入） -->
+			<div class="modal fade" id="importModal" tabindex="-2" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+							<div class="modal-content" style="width:500px">
+									<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+											<h4 class="modal-title" id="myModalLabel">导入地图</h4>
+									</div>
+									<div class="modal-body">
+										<div class="row">
+											<p class="form-control-static col-md-4">选择地图文件</p>
+											<div class="input-group col-md-6">
+												<input type="file" class="form-control" id="fileInput" aria-describedby="basic-addon1">
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="importFile()">导入</button>
+									</div>
+							</div>
+					</div>
+			</div> 
+			<li role="presentation"><a data-toggle="modal" href="#exportModal">导出</a></li>
+			<!-- 模态框（导出） -->
+			<div class="modal fade" id="exportModal" tabindex="-3" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+							<div class="modal-content" style="width:500px">
+									<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+											<h4 class="modal-title" id="myModalLabel">导出地图</h4>
+									</div>
+									<div class="modal-body">
+										<div class="row">
+											<p class="form-control-static col-md-4">地图文件名</p>
+											<div class="input-group col-md-6">
+												<input type="text" class="form-control" id="fileOutput" placeholder="*.csv" aria-describedby="basic-addon1">
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+											<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="exportFile()">导出</button>
+									</div>
+							</div>
+					</div>
+			</div> 
+			<li role="presentation"><a href="#" onclick="extendMapClick()">扩展</a></li>
+			<li role="presentation"><a href="#" onclick="contractMapClick()">收缩</a></li>
         </ul>
     </div>
     <div>
@@ -71,55 +151,57 @@
     <br>
     <div class="row">
   		<div class="col-md-2 col-lg-2">
- <!--  			<div class="border">
-  				<h2>Default</h2>
-  				<span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>
-  			    </div>	-->
-
 			<div class="panel panel-default" >
 			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
-			    <h2 class="panel-title" style="font-size: 20px">Default</h2>
+			    <h2 class="panel-title" style="font-size: 20px">默认类型</h2>
 			  </div>
-			  <div class="panel-body">
-			    <span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>
-  				<span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>
-  				<span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>
-  				<span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>
-  				<span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>	
-  				<span class="glyphicon glyphicon-plus"></span>
-  				<span class="glyphicon glyphicon-tags"></span>
-  				<span class="glyphicon glyphicon-menu-hamburger"></span>
-			  </div>
+			  <div class="panel-body" id="imagePanel">
+					<img src="images/mouse-pointer.png" id="pointer" class="myImage img-thumbnail" onclick="modeChange(-1)">
+					<!--img src="images/add.png" class="myImage img-thumbnail"-->
+				</div>
 			</div>
             <div>
   				<hr>
   			</div>
 			<div class="panel panel-default " >
 			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
-			    <h2 class="panel-title" style="font-size: 20px">Custom</h2>
+			    <h2 class="panel-title" style="font-size: 20px">自定义类型</h2>
 			  </div>
 			  <div class="panel-body">
-			    <span class="glyphicon glyphicon-plus"></span>
+				<img src="images/add.png" class="myImage img-thumbnail" onclick="$('#addModal').modal()">
+				<!-- 模态框（添加） -->
+				<div class="modal fade" id="addModal" tabindex="-3" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content" style="width:500px">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+								<h4 class="modal-title" id="myModalLabel">添加自定义地图样式</h4>
+							</div>
+							<div class="modal-body">
+								<div class="row">
+									<p class="form-control-static col-md-4">选择地图点类型</p>
+									<div class="col-md-6">
+										<select class="form-control" onchange="selectChange(this.value)">
+										<!--onload方法填充部分-->
+										</select>
+									</div>
+								</div> 
+								<div id="customAttr">
+									<!--selectChange方法填充部分-->
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+								<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="addClick()">添加</button>
+							</div>
+						</div>
+					</div>
+				</div> 	
 			  </div>
 			</div>
-
   		</div>
 
-  		<div class="col-md-8 col-lg-8" id="mainBody">
-				<!-- <button onclick="foo()">Click me</button> -->
-  		</div>
+  		<div class="col-md-8 col-lg-8" id="mainBody"></div>
 
   		<div class="col-md-2 col-lg-2" >
   			<div class="panel panel-default" >
@@ -128,12 +210,6 @@
 			  </div>
 			  <div class="panel-body">
           <form class="form-horizontal" role="form" id="attrPanel">
-            <div class="form-group">
-              <label class="mylabel col-md-3 col-sm-3 control-label">type</label>
-              <div class="myFormDiv col-md-9 col-sm-9">
-                <p class="form-control-static" id="pointType">lg;hsargaehfefh</p>
-              </div>
-            </div>
           </form>
 			  </div>
 			</div>
@@ -145,9 +221,43 @@
 <script src="js/Stringformat.js"></script>
 <script>
 	main();
-	// function foo(){
-	// 	var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
-	// 	saveAs(blob, "hello world.src");
-	// }
+</script>
+
+<!--读取上传文件内容-->
+<script type="text/javascript">
+    window.onload = function() {
+        /**
+         * 上传函数
+         * @param fileInput DOM对象
+         * @param callback 回调函数
+         */
+        var getFileContent = function (fileInput, callback) {
+            if (fileInput.files && fileInput.files.length > 0 && fileInput.files[0].size > 0) {
+                //下面这一句相当于JQuery的：var file =$("#upload").prop('files')[0];
+                var file = fileInput.files[0];
+                if (window.FileReader) {
+                    var reader = new FileReader();
+                    reader.onloadend = function (evt) {
+                        if (evt.target.readyState == FileReader.DONE) {
+                            callback(evt.target.result);
+                        }
+                    };
+                    // 包含中文内容用gbk编码
+                    reader.readAsText(file, 'gbk');
+                }
+            }
+        };
+
+        /**
+         * upload内容变化时载入内容
+         */
+        document.getElementById('fileInput').onchange = function () {
+            var content = document.getElementById('content');
+
+            getFileContent(this, function (str) {
+                MapEditor.mapData = str;
+            });
+        };
+    };
 </script>
 </html>

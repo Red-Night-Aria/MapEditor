@@ -38,7 +38,7 @@
         "9": {
             "name": "不可通行点",
             "picture": "charger_pole.png",
-            "attr": ["cost"]
+            "attr": []
         },
         "10": {
             "name": "货架进场点",
