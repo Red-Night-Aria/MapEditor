@@ -60,6 +60,17 @@
 		margin: 5px;
 	}
 
+	.myImage:active{
+	border: 2px solid #ed6d00;
+	}
+
+	.juxingkuang{
+		position: relative;
+		top: -30px;
+		height: 30px;
+		width: 100px;
+		margin: 0px;
+	}
 </style>
 <body class="container">   
 		<br>
@@ -141,7 +152,7 @@
 					</div>
 			</div> 
 			<li role="presentation"><a href="#" onclick="extendMapClick()">扩展</a></li>
-			<li role="presentation"><a href="#" onclick="contractMapClick()">收缩</a></li>
+			<li role="presentation"><a href="#" onclick="cutMapClick()">裁剪</a></li>
         </ul>
     </div>
     <div>
@@ -156,7 +167,7 @@
 			    <h2 class="panel-title" style="font-size: 20px">默认类型</h2>
 			  </div>
 			  <div class="panel-body" id="imagePanel">
-					<img src="images/mouse-pointer.png" id="pointer" class="myImage img-thumbnail" onclick="modeChange(-1)">
+					<img src="images/mouse-pointer.png" id="pointer" title="指针" class="myImage img-thumbnail" onclick="modeChange(-1)">
 					<!--img src="images/add.png" class="myImage img-thumbnail"-->
 				</div>
 			</div>
@@ -167,8 +178,8 @@
 			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
 			    <h2 class="panel-title" style="font-size: 20px">自定义类型</h2>
 			  </div>
-			  <div class="panel-body">
-				<img src="images/add.png" class="myImage img-thumbnail" onclick="$('#addModal').modal()">
+			  <div class="panel-body" id="customPanel">
+				<img src="images/add.png" class="myImage img-thumbnail" title="添加新样式" onclick="$('#addModal').modal()">
 				<!-- 模态框（添加） -->
 				<div class="modal fade" id="addModal" tabindex="-3" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 					<div class="modal-dialog">
@@ -201,7 +212,10 @@
 			</div>
   		</div>
 
-  		<div class="col-md-8 col-lg-8" id="mainBody"></div>
+		<!--地图主体-->
+  		<div class="col-md-8 col-lg-8" id="mainBody">
+  		<h4 class="juxingkuang"><span class="label label-info" style="margin: 0px;"> (0, 0) </span></h4>
+		</div>
 
   		<div class="col-md-2 col-lg-2" >
   			<div class="panel panel-default" >

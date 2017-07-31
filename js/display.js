@@ -18,18 +18,18 @@ Display.attrTemplate2 = `
 `;
 
 Display.imTemplate = `
-<img src="images/img/themes/{0}/map/{1}" onclick="modeChange({2})" class="myImage img-thumbnail">
+<img src="images/img/themes/{0}/map/{1}" title="{4}" onclick="modeChange({2}, {3})" class="myImage img-thumbnail">
 `;
 
 Display.optionTemplate = `
-<option>{0}</option>
+<option value="{1}">{0}</option>
 `
 
 Display.attrTemplate3 = `
 <div class="row">
     <p class="form-control-static col-md-4">{0}</p>
-	<div class="col-md-6">
-        <input type="text" class="form-control">
+	<div class="col-md-6 attrInput">
+        <input type="text" name="{0}" class="form-control">
     </div>
 </div>
 `
@@ -71,8 +71,8 @@ function exportFile(){
 function loadItem(){
     for (var k in NameMap){
         //console.log(NameMap[k].picture);
-        $("#pointer").after(Display.imTemplate.format(theme, NameMap[k].picture, k));
-        $("select").append(Display.optionTemplate.format(NameMap[k].name));
+        $("#pointer").after(Display.imTemplate.format(theme, NameMap[k].picture, k, 0, NameMap[k].name));
+        $("select").append(Display.optionTemplate.format(NameMap[k].name, k));
     }
 }
 
@@ -85,12 +85,20 @@ function extendMapClick(){
     extendMap(1);
 }
 
-function contractMapClick(){
-    contractMap(1);
+function cutMapClick(){
+    if (!stateTable.hasMulitSelected){
+        alert("请先选择欲保留区域");
+    }
+    else {
+        if (confirm("确定要裁剪下该区域？")){
+            var coord = adjustCoord();
+            cutMap(coord.TLx, coord.TLy, coord.BRx, coord.BRy);
+        }
+    }
 }
 
 function selectChange(value){
-    var type;
+    var type = value;
     $("#customAttr").empty();
     var htmlStr = `
         <hr />
@@ -99,12 +107,6 @@ function selectChange(value){
         </div>
     `
     $("#customAttr").append(htmlStr);
-    for (var k in NameMap){
-        if (NameMap[k].name == value){
-            type = k;
-            break;
-        }
-    }
     var pointType = NameMap[type];
     var attrSet = pointType["attr"];
     for (var i=0; i<attrSet.length; i++){
@@ -112,6 +114,19 @@ function selectChange(value){
     }
 }
 
+Display.customPoint = [];
+
 function addClick(){
-    console.log($("#customAttr"));
+    var type = $("select").val();
+    var pointType = NameMap[type];
+    var attrSet = pointType["attr"];
+    var inputs = $("div.attrInput > input");
+    var point = new MapPoint(type);
+    for (var i=0; i<inputs.length; i++){
+        // console.log(inputs[i].name, inputs[i].value);
+        point[inputs[i].name] = inputs[i].value;
+    }
+    Display.customPoint.push(point);
+    $("#customPanel").append(Display.imTemplate.format(theme, NameMap[type].picture, 
+        "-2", Display.customPoint.length-1, NameMap[type].name));
 }

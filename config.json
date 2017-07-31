@@ -31,7 +31,7 @@
             "attr": ["cost"]
         },
         "8": {
-            "name": "？？？",
+            "name": "货架离场点",
             "picture": "bucket_detachable_working_online.png",
             "attr": ["cost"]
         },

@@ -68,6 +68,7 @@ var stateTable={
 */
 var MapEditor = {
     "mode": "-1",
+    "pointIndex": "",
     "mapData": ""
 }
 
@@ -87,8 +88,9 @@ function main(){
     var divWidth = $("#mainBody").width();  //获取画布容器的宽度
     var divHeight = $(document).height();
     stage = new Container();
-    renderer = autoDetectRenderer(divHeight, divWidth);
+    renderer = autoDetectRenderer(divWidth, divHeight);
     $("#mainBody").append(renderer.view);
+    $("canvas").css("margin-top", "-30px");
     
     /*
         加载配置文件
@@ -143,7 +145,9 @@ function clearStage(){
 }
 
 //载入地图文件
-function loadMap(data){ 
+function loadMap(data){
+    clearMessage();
+    clearStage(); 
     var Rows = data.split("\n");
     R = Rows.length-1;  //地图文件末尾有空行
     C = Rows[0].split(importSep[0]).length;  
@@ -217,8 +221,14 @@ function createSprite(i, j){
     Grids[i][j].width = Grids[i][j].height = len;
     Grids[i][j].index_x = i; Grids[i][j].index_y = j;
     Grids[i][j].interactive = true;
-    Grids[i][j].on('pointerdown', onSpriteClick);  
+    Grids[i][j].on('pointerdown', onSpriteClick);
+    Grids[i][j].on('pointerover', onSpriteOver);  
     stage.addChild(Grids[i][j]);
+}
+
+function onSpriteOver(){
+    var coordstr = " ({0}, {1}) ";
+    $("h4.juxingkuang>span").text(coordstr.format(R-this.index_x-1, this.index_y));
 }
 
 function onSpriteClick(){
@@ -229,7 +239,19 @@ function onSpriteClick(){
         pointerClick(this);
     }
     /*
-        如果是修改模式
+        如果是自定义修改
+    */
+    else if (MapEditor.mode=="-2"){
+        var point = {};
+        for (var k in Display.customPoint[MapEditor.pointIndex]){
+            point[k] = Display.customPoint[MapEditor.pointIndex][k];
+        }
+        QT_Map[this.index_x][this.index_y] = point;
+        createSprite(this.index_x, this.index_y);
+        renderer.render(stage);       
+    }
+    /*
+        如果是常规修改
     */
     else {
         QT_Map[this.index_x][this.index_y] = new MapPoint(MapEditor.mode);
@@ -394,9 +416,28 @@ function extendMap(margin){
     createMap();
 }
 
-function contractMap(margin){
+function clone(obj){
+    var newobj = {};
+    for (var i in obj){
+        newobj[i] = obj[i];
+    }
+    return newobj;
+}
+
+function cutMap(TLx, TLy, BRx, BRy){
     clearPreTrace();
     clearStage();
+
+    var tmpMap = {};
+    for (var i=0; i<BRx-TLx+1; i++){
+        tmpMap[i] = {};
+        for (var j=0; j<BRy-TLy+1; j++){
+            tmpMap[i][j] = clone(QT_Map[TLx+i][TLy+j]);
+        }
+    }
+    QT_Map = tmpMap;
+    R = BRx-TLx+1;  C = BRy-TLy+1;
+    createMap();
 }
 
 function dataChange(attr, value){
@@ -405,18 +446,29 @@ function dataChange(attr, value){
     QT_Map[XY.x][XY.y][attr] = value; 
 }
 
-function modeChange(mode){
+function modeChange(mode, index=-1){
     if (stateTable.hasMulitSelected && mode != "-1"){
         var coord = adjustCoord();
         for (var i=coord.TLx; i<=coord.BRx; i++)
             for (var j=coord.TLy; j<=coord.BRy; j++){
-                QT_Map[i][j] = new MapPoint(mode);
+                if (mode != "-2"){
+                    QT_Map[i][j] = new MapPoint(mode);
+                }
+                else {
+                    var point = {};
+                    for (var k in Display.customPoint[index]){
+                        point[k] = Display.customPoint[index][k];
+                    }
+                    console.log(point);
+                    QT_Map[i][j] = point;
+                }
                 createSprite(i, j);
             }
         renderer.render(stage);
     }
     else {
         MapEditor.mode = mode;
+        MapEditor.pointIndex = index;
         stateTable.hasSingleSelected = false;
         stateTable.hasMulitSelected = false;
         stateTable.state = 0;
