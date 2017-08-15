@@ -23,7 +23,7 @@
         "6": {
             "name": "路径点",
             "picture": "path.png",
-            "attr": ["cost", "lane"]
+            "attr": ["cost", "stationID", "relativeID", "lane"]
         },
         "7": {
             "name": "充电站",

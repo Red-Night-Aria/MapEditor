@@ -81,7 +81,20 @@ function MapPoint(type){
     this.typeName = pointType["name"];
     this.picture = pointType["picture"];
     var attrSet = pointType["attr"];    //读取属性集
-    for (var i=0; i<attrSet.length; i++) this[attrSet[i]] = ""; //动态添加属性 
+    for (var i=0; i<attrSet.length; i++) {
+        if (attrSet[i] != "cost")
+            this[attrSet[i]] = ""; //动态添加属性 
+        else {
+            this["LTcost"] = "";
+            this["Tcost"] = "";
+            this["RTcost"] = "";
+            this["Rcost"] = "";
+            this["RBcost"] = "";
+            this["Bcost"] = "";
+            this["LBcost"] = "";
+            this["Lcost"] = "";
+        }
+    }
 }
 
 function main(){
@@ -180,12 +193,58 @@ function createMap(){
 */
 function processData(str){
     var parts = str.split(importSep[1]);    //分隔属性字段
+    if (parts[0]==undefined) console.log(parts);
     var point = new MapPoint(parts[0]);
     var attrSet = NameMap[parts[0]]["attr"];
     for (var i=1; i<parts.length; i++){
-        point[attrSet[i-1]] = parts[i];
+        if (attrSet[i-1] == "cost"){
+            costSet = parts[i].split(importSep[2]);
+            point["LTcost"] = costSet[0] + ";" + costSet[8];
+            point["Tcost"] = costSet[1] + ";" + costSet[9];
+            point["RTcost"] = costSet[2] + ";" + costSet[10];
+            point["Rcost"] = costSet[3] + ";" + costSet[11];
+            point["RBcost"] = costSet[4] + ";" + costSet[12];
+            point["Bcost"] = costSet[5] + ";" + costSet[13];
+            point["LBcost"] = costSet[6] + ";" + costSet[14];
+            point["Lcost"] = costSet[7] + ";" + costSet[15];
+        }
+        else if (parts[i].indexOf("lane") != -1){
+            point["lane"] = parts[i];
+        }
+        else
+        {
+            point[attrSet[i-1]] = parts[i];
+        }     
     } 
     return point;
+}
+
+
+/*
+    处理cost字段的导出；
+    假定若填了一个cost字段，则所有cost字段均已填写；
+    完整性检查应当在exportFile()处完成
+*/
+function awful(point){
+    if (point["LTcost"] == "") return ""; 
+    var result = "";
+    result += point["LTcost"].split(";")[0] + exportSep[2];
+    result += point["Tcost"].split(";")[0] + exportSep[2];
+    result += point["RTcost"].split(";")[0] + exportSep[2];
+    result += point["Rcost"].split(";")[0] + exportSep[2];
+    result += point["RBcost"].split(";")[0] + exportSep[2];
+    result += point["Bcost"].split(";")[0] + exportSep[2];
+    result += point["LBcost"].split(";")[0] + exportSep[2];
+    result += point["Lcost"].split(";")[0] + exportSep[2];
+    result += point["LTcost"].split(";")[1] + exportSep[2];
+    result += point["Tcost"].split(";")[1] + exportSep[2];
+    result += point["RTcost"].split(";")[1] + exportSep[2];
+    result += point["Rcost"].split(";")[1] + exportSep[2];
+    result += point["RBcost"].split(";")[1] + exportSep[2];
+    result += point["Bcost"].split(";")[1] + exportSep[2];
+    result += point["LBcost"].split(";")[1] + exportSep[2];
+    result += point["Lcost"].split(";")[1];
+    return result;
 }
 
 /*
@@ -200,7 +259,12 @@ function convertMap(){
             var field = point.type;
             var attrSet = pointType["attr"];
             for (var k=0; k<attrSet.length; k++){
-                if (point[attrSet[k]] != undefined){
+                if (attrSet[k] == "cost"){
+                    var result = awful(point);
+                    if (result != "")
+                        field += exportSep[1] + result;
+                }
+                else if (point[attrSet[k]] != ""){
                     field += exportSep[1] + point[attrSet[k]];
                 }
             }
@@ -228,7 +292,7 @@ function createSprite(i, j){
 
 function onSpriteOver(){
     var coordstr = " ({0}, {1}) ";
-    $("h4.juxingkuang>span").text(coordstr.format(R-this.index_x-1, this.index_y));
+    $("h4.juxingkuang>span:first").text(coordstr.format(R-this.index_x-1, this.index_y));
 }
 
 function onSpriteClick(){
@@ -379,20 +443,20 @@ function endDrag(e){
 // }
 var emptyPoint = "9";
 
-//扩容QT_Map
+//沿X轴和Y轴扩容QT_Map
 function extendMap(margin){
+    if (margin+R>maxR || margin+C>maxC){
+        alert("too big");
+    } 
+    
     clearPreTrace();
     clearStage();
 
-    //为现有行添加首尾元素
+    //为现有行添加尾元素
     for (var i=0; i<R; i++){
-        for (var j=C-1; j>=0; j--){
-            QT_Map[i][j+margin] = QT_Map[i][j];
-        }
         for (var j=0; j<margin; j++){
-            QT_Map[i][j] = new MapPoint(emptyPoint);
-            QT_Map[i][C+margin+j] = new MapPoint(emptyPoint);
-        }
+            QT_Map[i][C+j] = new MapPoint(emptyPoint);
+        }    
     }
 
     //逐行下移
@@ -400,17 +464,15 @@ function extendMap(margin){
         QT_Map[i+margin] = QT_Map[i]; 
     }
 
-    //添加首尾新行
+    //添加新行
     for (var i=0; i<margin; i++){
         QT_Map[i] = new Array(maxC);
-        QT_Map[R+margin+i] = new Array(maxC);
-        for (var j=0; j<C+margin*2; j++){
+        for (var j=0; j<C+margin; j++){
             QT_Map[i][j] = new MapPoint(emptyPoint);
-            QT_Map[R+margin+i][j] = new MapPoint(emptyPoint);
         }
     }
 
-    R = R+margin*2; C = C+margin*2;
+    R = R+margin; C = C+margin;
     console.log(R, " ", C);
     console.log(QT_Map);
     createMap();
@@ -447,6 +509,7 @@ function dataChange(attr, value){
 }
 
 function modeChange(mode, index=-1){
+    clearPreTrace();
     if (stateTable.hasMulitSelected && mode != "-1"){
         var coord = adjustCoord();
         for (var i=coord.TLx; i<=coord.BRx; i++)
@@ -472,6 +535,12 @@ function modeChange(mode, index=-1){
         stateTable.hasSingleSelected = false;
         stateTable.hasMulitSelected = false;
         stateTable.state = 0;
+        if (mode==-1){
+            $("h4.juxingkuang>span:last").text("选择模式")
+        }
+        else {
+            $("h4.juxingkuang>span:last").text("修改模式")
+        }
     }
 }
 

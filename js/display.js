@@ -36,15 +36,19 @@ Display.attrTemplate3 = `
 
 //展示point的信息
 //point有两个只读属性picture、type,以及若干个可编辑属性
-//可编辑属性更改后直接保存在point中就好
 function showMessage(point){
-    var pointType = NameMap[point.type];
-    $("#attrPanel").append(Display.attrTemplate1.format(point.typeName));
+    // var pointType = NameMap[point.type];
+    // $("#attrPanel").append(Display.attrTemplate1.format(point.typeName));
 
-    var attrSet = pointType["attr"]; 
-    for (var i=0; i<attrSet.length; i++){
-        $("#attrPanel").append(Display.attrTemplate2.format(attrSet[i], attrSet[i], point[attrSet[i]]));
-    }
+    // var attrSet = pointType["attr"]; 
+    // for (var i=0; i<attrSet.length; i++){
+    //     $("#attrPanel").append(Display.attrTemplate2.format(attrSet[i], attrSet[i], point[attrSet[i]]));
+    // }
+    $("#attrPanel").append(Display.attrTemplate1.format(point.typeName));
+    for (var attr in point)
+        if (attr != "type" && attr != "typeName" && attr != "picture"){
+            $("#attrPanel").append(Display.attrTemplate2.format(attr, attr, point[attr]));
+        }
 }
 
 function clearMessage(){
@@ -110,7 +114,19 @@ function selectChange(value){
     var pointType = NameMap[type];
     var attrSet = pointType["attr"];
     for (var i=0; i<attrSet.length; i++){
-        $("#customAttr").append(Display.attrTemplate3.format(attrSet[i]));
+        if (attrSet[i]=="cost"){
+            $("#customAttr").append(Display.attrTemplate3.format("LTcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("Tcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("RTcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("Rcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("RBcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("Bcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("LBcost"));
+            $("#customAttr").append(Display.attrTemplate3.format("Lcost"));
+        }
+        else {
+            $("#customAttr").append(Display.attrTemplate3.format(attrSet[i]));
+        }       
     }
 }
 
@@ -122,11 +138,16 @@ function addClick(){
     var attrSet = pointType["attr"];
     var inputs = $("div.attrInput > input");
     var point = new MapPoint(type);
+    $("#customPanel").append(Display.imTemplate.format(theme, NameMap[type].picture, 
+        "-2", Display.customPoint.length, NameMap[type].name));
+    // $("img:last").oncontextmenu = function(){
+    //     //$("img:last").remove();
+    //     return false;
+    // }
     for (var i=0; i<inputs.length; i++){
-        // console.log(inputs[i].name, inputs[i].value);
         point[inputs[i].name] = inputs[i].value;
+        $("img:last").attr("title", $("img:last").attr("title")+"\n"+inputs[i].name+": "+inputs[i].value);
     }
     Display.customPoint.push(point);
-    $("#customPanel").append(Display.imTemplate.format(theme, NameMap[type].picture, 
-        "-2", Display.customPoint.length-1, NameMap[type].name));
+
 }

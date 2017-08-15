@@ -37,7 +37,9 @@
     /*-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);  */
     background-color: #F0deb9;  
 	} 
-
+body{
+	background-color: #fcfcfc;
+}
   .myInput{
     height: 29px;
     padding-left: 4px;
@@ -68,13 +70,25 @@
 		position: relative;
 		top: -30px;
 		height: 30px;
-		width: 100px;
+		width: 1000px;
 		margin: 0px;
 	}
+.label{
+		background-color: #67E300 !important;
+		font-weight: 500!important;
+}
+.mynav{
+	background-color: #f0f0f0;
+	padding:10px 8%;
+	padding-right: 6%;
+}
+.nav li:hover{
+border-bottom: 3px solid #42b983;
+}
 </style>
-<body class="container">   
-		<br>
+<body>   
 		<!-- 导航栏 -->
+		<div class="mynav">
     <div style="float:right;">
         <ul class="nav nav-pills">
 			<li role="presentation"><a data-toggle="modal" href="#newModal">新建</a></li>
@@ -157,14 +171,16 @@
     </div>
     <div>
     	<img src="logowo.png">
-    </div>
+	</div>
+	</div>
     <br>
-    <br>
+	<br>
+	<div class="container">
     <div class="row">
   		<div class="col-md-2 col-lg-2">
 			<div class="panel panel-default" >
-			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
-			    <h2 class="panel-title" style="font-size: 20px">默认类型</h2>
+			  <div class="panel-heading" style="background-color:#67E300;color:white ">
+			    <h2 class="panel-title" style="font-size: 16px">默认类型</h2>
 			  </div>
 			  <div class="panel-body" id="imagePanel">
 					<img src="images/mouse-pointer.png" id="pointer" title="指针" class="myImage img-thumbnail" onclick="modeChange(-1)">
@@ -175,8 +191,8 @@
   				<hr>
   			</div>
 			<div class="panel panel-default " >
-			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
-			    <h2 class="panel-title" style="font-size: 20px">自定义类型</h2>
+			  <div class="panel-heading" style="background-color:#67E300;color:white ">
+			    <h2 class="panel-title" style="font-size: 16px">自定义类型</h2>
 			  </div>
 			  <div class="panel-body" id="customPanel">
 				<img src="images/add.png" class="myImage img-thumbnail" title="添加新样式" onclick="$('#addModal').modal()">
@@ -193,6 +209,7 @@
 									<p class="form-control-static col-md-4">选择地图点类型</p>
 									<div class="col-md-6">
 										<select class="form-control" onchange="selectChange(this.value)">
+										<option value="/">请选择</option>
 										<!--onload方法填充部分-->
 										</select>
 									</div>
@@ -214,13 +231,16 @@
 
 		<!--地图主体-->
   		<div class="col-md-8 col-lg-8" id="mainBody">
-  		<h4 class="juxingkuang"><span class="label label-info" style="margin: 0px;"> (0, 0) </span></h4>
+  		<h4 class="juxingkuang">
+			<span class="label label-info" style="margin: 0px;"> (0, 0) </span>&nbsp;
+			<span class="label label-info" style="margin: 0px;"> 选择模式 </span>
+		</h4>
 		</div>
 
   		<div class="col-md-2 col-lg-2" >
   			<div class="panel panel-default" >
-			  <div class="panel-heading" style="background-color:#cc9b6a;color:white ">
-			    <h2 class="panel-title" style="font-size: 20px">属性</h2>
+			  <div class="panel-heading" style="background-color:#67E300;color:white ">
+			    <h2 class="panel-title" style="font-size: 16px">属性</h2>
 			  </div>
 			  <div class="panel-body">
           <form class="form-horizontal" role="form" id="attrPanel">
@@ -228,6 +248,7 @@
 			  </div>
 			</div>
   		</div>
+	</div>
 	</div>
 </body>
 <script src="js/mapEditor.js"></script>
